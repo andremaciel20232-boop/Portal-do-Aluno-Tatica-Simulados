@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tática Simulados – Portal do Aluno</title>
+<style>
+:root{
+  --bg:#0f1419; --card:#1a222c; --line:#2a3440; --text:#e6edf3; --muted:#8b98a5;
+  --accent:#e0a526; --ok:#3fb950; --danger:#e5534b;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hidden{display:none!important}
+
+/* Tela de entrada */
+.tela-login{
+  min-height:100vh;
+  background:
+    linear-gradient(to bottom, rgba(10,20,40,.10) 0%, rgba(10,20,40,.55) 55%, rgba(10,20,40,.92) 100%),
+    url("assets/fundo-tatica.jpg") center top / cover no-repeat,
+    #0b1a33;
+  display:flex;justify-content:center;align-items:flex-end;
+  padding:24px 16px 6vh;
+}
+.login-card{
+  background:rgba(12,18,26,.86);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  border:1px solid rgba(224,165,38,.45);
+  border-radius:14px;padding:26px;width:100%;max-width:380px;
+}
+.login-card h2{margin:0 0 6px;font-size:1.2rem}
+.login-card .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+
+/* Portal */
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px}
+.brand{font-weight:800;font-size:1.2rem;letter-spacing:.5px}
+.brand span{color:var(--accent)}
+main{max-width:960px;margin:0 auto;padding:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:20px}
+h2{margin:0 0 12px;font-size:1.15rem}
+h3{margin:18px 0 8px;font-size:1rem;color:var(--accent)}
+label{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+input,select,textarea{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:15px;margin-bottom:14px;font-family:inherit}
+textarea{resize:vertical}
+button{background:var(--accent);color:#111;border:0;border-radius:8px;padding:11px 18px;font-weight:600;cursor:pointer;font-size:15px}
+button:hover:not(:disabled){filter:brightness(1.08)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.sec{background:transparent;color:var(--text);border:1px solid var(--line)}
+button.danger{background:var(--danger);color:#fff}
+.msg{padding:10px 12px;border-radius:8px;margin-bottom:14px;font-size:14px}
+.erro{background:rgba(229,83,75,.15);color:#ff9b95}
+.ok{background:rgba(63,185,80,.15);color:#7ee38c}
+.aviso{background:rgba(224,165,38,.12);color:var(--accent)}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;flex-wrap:wrap}
+.item .acoes{display:flex;gap:8px;flex-wrap:wrap}
+.muted{color:var(--muted);font-size:14px}
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.badge{display:inline-block;font-size:12px;padding:3px 9px;border-radius:99px;margin-top:4px}
+.badge.aberto{background:rgba(63,185,80,.15);color:#7ee38c}
+.badge.fechado{background:rgba(139,152,165,.15);color:var(--muted)}
+.badge.trancado{background:rgba(229,83,75,.15);color:#ff9b95}
+.linha{border-top:1px solid var(--line);padding:10px 0;font-size:14px}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:rgba(224,165,38,.15);color:var(--accent);margin-left:6px}
+.texto-recurso{white-space:pre-wrap;margin-top:6px}
+iframe{width:100%;height:75vh;border:1px solid var(--line);border-radius:8px;background:#fff}
+</style>
+</head>
+<body>
+
+<!-- ================= TELA DE ENTRADA ================= -->
+<section id="telaLogin" class="tela-login">
+  <div class="login-card">
+    <img src="assets/fundo-tatica.jpg" alt="Tática Simulados – Concursos Públicos"
+         style="width:100%;border-radius:10px;margin-bottom:18px;display:block"
+         onerror="this.style.display='none'">
+    <h2>Portal do Aluno</h2>
+    <p class="sub">Acesse com o e-mail e a senha fornecidos.</p>
+    <div id="loginMsg"></div>
+    <form id="formLogin" autocomplete="on">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" required autocomplete="username">
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" required autocomplete="current-password">
+      <button type="submit" style="width:100%">Entrar</button>
+    </form>
+  </div>
+</section>
+
+<!-- ================= PORTAL ================= -->
+<div id="telaPortal" class="hidden">
+  <header>
+    <div class="brand">TÁTICA <span>SIMULADOS</span></div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <span class="muted" id="userNome"></span>
+      <button class="sec" onclick="sair()">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button id="tabMateriais" onclick="mostrarAba('materiais')">Materiais</button>
+      <button id="tabSimulados" class="sec" onclick="mostrarAba('simulados')">Simulados e gabaritos</button>
+      <button id="tabRecursos" class="sec" onclick="mostrarAba('recursos')">Recursos</button>
+      <button id="tabModerador" class="sec hidden" onclick="mostrarAba('moderador')">Moderação</button>
+    </div>
+
+    <!-- Materiais -->
+    <div id="secMateriais" class="card">
+      <h2>Meus materiais</h2>
+      <div id="listaMateriais"></div>
+    </div>
+
+    <!-- Simulados -->
+    <div id="secSimulados" class="card hidden">
+      <h2>Simulados e gabaritos</h2>
+      <div id="listaSimulados"></div>
+    </div>
+
+    <!-- Recursos do aluno -->
+    <div id="secRecursos" class="card hidden">
+      <h2>Recurso de gabarito</h2>
+      <div id="statusGeral"></div>
+      <div id="recursoMsg"></div>
+      <form id="formRecurso" class="hidden">
+        <label for="recSimulado">Simulado</label>
+        <select id="recSimulado" required></select>
+
+        <label for="recQuestao">Questão</label>
+        <select id="recQuestao" required></select>
+
+        <label for="recTexto">Fundamentação do recurso</label>
+        <textarea id="recTexto" rows="6" required maxlength="3000"
+          placeholder="Explique por que você acredita que o gabarito está incorreto ou que outra alternativa também é válida..."></textarea>
+
+        <button type="submit">Enviar recurso</button>
+      </form>
+
+      <h2 style="margin-top:30px">Meus recursos enviados</h2>
+      <div id="historicoRecursos"></div>
+    </div>
+
+    <!-- Moderação -->
+    <div id="secModerador" class="hidden">
+      <div class="card">
+        <h2>Controle de recursos</h2>
+        <div id="modMsg"></div>
+        <p class="muted" id="modStatus"></p>
+        <button id="btnTrancar" onclick="alternarTrava()"></button>
+      </div>
+
+      <div class="card">
+        <h2>Recursos recebidos</h2>
+        <div id="listaRecursosMod"></div>
+      </div>
+
+      <div class="card">
+        <h2>Cadastrar aluno</h2>
+        <div id="alunoMsg"></div>
+        <form id="formAluno">
+          <label for="novoNome">Nome</label>
+          <input type="text" id="novoNome" required>
+          <label for="novoEmail">E-mail</label>
+          <input type="email" id="novoEmail" required>
+          <label for="novoPacotes">Pacotes (separados por ponto e vírgula)</label>
+          <input type="text" id="novoPacotes" placeholder="pacote-1;pacote-3" required>
+          <label for="novaSenha">Senha inicial</label>
+          <input type="text" id="novaSenha" required minlength="6">
+          <button type="submit">Cadastrar aluno</button>
+        </form>
+
+        <h2 style="margin-top:24px">Alunos cadastrados</h2>
+        <div id="listaAlunos"></div>
+      </div>
+    </div>
+
+    <!-- Visualizador -->
+    <div id="viewer" class="card hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+        <h2 id="viewerTitulo" style="margin:0"></h2>
+        <button class="sec" onclick="fecharViewer()">Fechar</button>
+      </div>
+      <iframe id="viewerFrame" title="Documento"></iframe>
+    </div>
+  </main>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURAÇÃO
+   apiUrl: URL do Apps Script (Implantar → Aplicativo da Web).
+   salt: deve ser o mesmo usado para gerar as senhas.
+   ========================================================= */
+const CONFIG = {
+  apiUrl: "COLE_AQUI_A_URL_DO_APPS_SCRIPT",
+  salt: "tatica-simulados-2026"
+};
+
+let sessao = null; // { email, hash, aluno, recursosAbertos, pacotes, meusRecursos }
+
+/* =========================================================
+   UTILITÁRIOS
+   ========================================================= */
+async function api(acao, dados = {}) {
+  let r;
+  try {
+    r = await fetch(CONFIG.apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ acao, ...dados })
+    });
+  } catch {
+    return { ok: false, erro: "Não foi possível conectar ao servidor." };
+  }
+  try { return await r.json(); }
+  catch { return { ok: false, erro: "Resposta inválida do servidor." }; }
+}
+
+async function gerarHash(senha) {
+  const dados = new TextEncoder().encode(CONFIG.salt + senha);
+  const buf = await crypto.subtle.digest("SHA-256", dados);
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function el(tag, texto, classe) {
+  const e = document.createElement(tag);
+  if (texto !== undefined) e.textContent = texto;
+  if (classe) e.className = classe;
+  return e;
+}
+
+function fmtData(v) {
+  return new Date(v).toLocaleString("pt-BR", {
+    timeZone: "America/Recife", day: "2-digit", month: "2-digit",
+    year: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+}
+
+function mostrarMsg(id, texto, tipo) {
+  const box = document.getElementById(id);
+  box.innerHTML = "";
+  box.appendChild(el("div", texto, "msg " + tipo));
+  setTimeout(() => { box.innerHTML = ""; }, 7000);
+}
+
+function criarItem(titulo, subtitulo, botoes, extra) {
+  const div = el("div", undefined, "item");
+  const info = el("div");
+  info.appendChild(el("div", titulo)).style.fontWeight = "600";
+  if (subtitulo) info.appendChild(el("div", subtitulo, "muted"));
+  if (extra) info.appendChild(extra);
+  const acoes = el("div", undefined, "acoes");
+  botoes.forEach(b => {
+    const btn = el("button", b.texto, b.classe || "sec");
+    btn.onclick = b.acao;
+    acoes.appendChild(btn);
+  });
+  div.appendChild(info);
+  div.appendChild(acoes);
+  return div;
+}
+
+function badge(st) {
+  return el("span", st.texto, "badge " + st.classe);
+}
+
+/* =========================================================
+   LOGIN / SESSÃO
+   ========================================================= */
+document.getElementById("formLogin").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const senha = document.getElementById("senha").value;
+  const hash = await gerarHash(senha);
+  const r = await api("login", { email, hash });
+  if (!r.ok) { mostrarMsg("loginMsg", r.erro, "erro"); return; }
+  sessionStorage.setItem("tatica_sessao", JSON.stringify({ email, hash }));
+  entrarNoPortal(email, hash, r);
+});
+
+function entrarNoPortal(email, hash, r) {
+  sessao = { email, hash, ...r };
+  document.getElementById("telaLogin").classList.add("hidden");
+  document.getElementById("telaPortal").classList.remove("hidden");
+  document.getElementById("userNome").textContent = r.aluno.nome;
+  document.getElementById("tabModerador").classList.toggle("hidden", r.aluno.papel !== "moderador");
+  renderMateriais();
+  renderSimulados();
+  renderRecursos();
+  renderHistorico();
+  mostrarAba("materiais");
+}
+
+// Atualiza dados (trava, janelas, histórico) consultando o servidor
+async function atualizarSessao() {
+  const r = await api("login", { email: sessao.email, hash: sessao.hash });
+  if (!r.ok) return false;
+  sessao = { ...sessao, ...r };
+  return true;
+}
+
+function sair() {
+  sessionStorage.removeItem("tatica_sessao");
+  sessao = null;
+  fecharViewer();
+  document.getElementById("telaPortal").classList.add("hidden");
+  document.getElementById("telaLogin").classList.remove("hidden");
+  document.getElementById("formLogin").reset();
+  document.getElementById("loginMsg").innerHTML = "";
+}
+
+(async function restaurarSessao() {
+  const salvo = JSON.parse(sessionStorage.getItem("tatica_sessao") || "null");
+  if (!salvo) return;
+  const r = await api("login", salvo);
+  if (r.ok) entrarNoPortal(salvo.email, salvo.hash, r);
+  else sessionStorage.removeItem("tatica_sessao");
+})();
+
+/* =========================================================
+   ABAS
+   ========================================================= */
+async function mostrarAba(aba) {
+  const abas = { materiais: "secMateriais", simulados: "secSimulados", recursos: "secRecursos", moderador: "secModerador" };
+  const botoes = { materiais: "tabMateriais", simulados: "tabSimulados", recursos: "tabRecursos", moderador: "tabModerador" };
+
+  if (aba === "simulados" || aba === "recursos") {
+    if (!await atualizarSessao()) { sair(); return; }
+    renderSimulados();
+    renderRecursos();
+    renderHistorico();
+  }
+  if (aba === "moderador") {
+    await carregarModerador();
+  }
+
+  Object.keys(abas).forEach(k => {
+    document.getElementById(abas[k]).classList.toggle("hidden", k !== aba);
+    document.getElementById(botoes[k]).classList.toggle("sec", k !== aba);
+  });
+}
+
+/* =========================================================
+   CONTEÚDO DO ALUNO
+   ========================================================= */
+function renderMateriais() {
+  const lista = document.getElementById("listaMateriais");
+  lista.innerHTML = "";
+  sessao.pacotes.forEach(p => {
+    lista.appendChild(el("h3", p.nome));
+    p.materiais.forEach(m => {
+      lista.appendChild(criarItem(m.titulo, p.nome, [
+        { texto: "Abrir", classe: "", acao: () => abrirPdf(m.titulo, m.arquivo) },
+        { texto: "Baixar", acao: () => baixarPdf(m.arquivo) }
+      ]));
+    });
+  });
+  if (!lista.children.length) lista.appendChild(el("p", "Nenhum material disponível.", "muted"));
+}
+
+function statusSimulado(s) {
+  if (!sessao.recursosAbertos) return { aberto: false, classe: "trancado", texto: "Recursos trancados pelo moderador" };
+  const agora = Date.now(), ini = Date.parse(s.inicio), fim = Date.parse(s.fim);
+  if (agora < ini) return { aberto: false, classe: "fechado", texto: "Abre em " + fmtData(ini) };
+  if (agora > fim) return { aberto: false, classe: "fechado", texto: "Prazo encerrado em " + fmtData(fim) };
+  return { aberto: true, classe: "aberto", texto: "Aberto até " + fmtData(fim) };
+}
+
+function renderSimulados() {
+  const lista = document.getElementById("listaSimulados");
+  lista.innerHTML = "";
+  sessao.pacotes.forEach(p => {
+    lista.appendChild(el("h3", p.nome));
+    p.simulados.forEach(s => {
+      lista.appendChild(criarItem(s.titulo, s.questoes + " questões", [
+        { texto: "Abrir prova", classe: "", acao: () => abrirPdf(p.nome + " – " + s.titulo + " – Prova", s.prova) },
+        { texto: "Ver gabarito", acao: () => abrirPdf(p.nome + " – " + s.titulo + " – Gabarito", s.gabarito) }
+      ], badge(statusSimulado(s))));
+    });
+  });
+  if (!lista.children.length) lista.appendChild(el("p", "Nenhum simulado disponível.", "muted"));
+}
+
+function simuladosAbertos() {
+  const lista = [];
+  sessao.pacotes.forEach(p => {
+    p.simulados.forEach(s => {
+      if (statusSimulado(s).aberto) lista.push({ pacote: p, sim: s });
+    });
+  });
+  return lista;
+}
+
+function renderRecursos() {
+  const statusGeral = document.getElementById("statusGeral");
+  const form = document.getElementById("formRecurso");
+  statusGeral.innerHTML = "";
+
+  if (!sessao.recursosAbertos) {
+    statusGeral.appendChild(el("div", "Os recursos estão trancados pelo moderador no momento.", "msg erro"));
+    form.classList.add("hidden");
+    return;
+  }
+
+  const abertos = simuladosAbertos();
+  if (!abertos.length) {
+    statusGeral.appendChild(el("div", "Nenhum gabarito está com recurso aberto neste momento. Confira as datas em Simulados e gabaritos.", "msg aviso"));
+    form.classList.add("hidden");
+    return;
+  }
+
+  form.classList.remove("hidden");
+  const selSim = document.getElementById("recSimulado");
+  selSim.innerHTML = "";
+  abertos.forEach((item, i) => {
+    const opt = el("option", item.pacote.nome + " – " + item.sim.titulo);
+    opt.value = i;
+    selSim.appendChild(opt);
+  });
+  selSim.onchange = atualizarQuestoes;
+  atualizarQuestoes();
+}
+
+function atualizarQuestoes() {
+  const item = simuladosAbertos()[document.getElementById("recSimulado").value];
+  const selQ = document.getElementById("recQuestao");
+  selQ.innerHTML = "";
+  if (!item) return;
+  for (let q = 1; q <= item.sim.questoes; q++) {
+    const opt = el("option", "Questão " + q);
+    opt.value = q;
+    selQ.appendChild(opt);
+  }
+}
+
+function renderHistorico() {
+  const box = document.getElementById("historicoRecursos");
+  box.innerHTML = "";
+  const lista = sessao.meusRecursos || [];
+  if (!lista.length) {
+    box.appendChild(el("p", "Você ainda não enviou recursos.", "muted"));
+    return;
+  }
+  lista.slice().reverse().forEach(r => {
+    const div = el("div", undefined, "linha");
+    const titulo = el("strong", r.pacote + " – " + r.simulado + " – Questão " + r.questao);
+    div.appendChild(titulo);
+    div.appendChild(el("span", r.status, "tag"));
+    div.appendChild(el("div", r.data ? new Date(r.data).toLocaleString("pt-BR", { timeZone: "America/Recife" }) : "", "muted"));
+    box.appendChild(div);
+  });
+}
+
+document.getElementById("formRecurso").addEventListener("submit", async e => {
+  e.preventDefault();
+  const item = simuladosAbertos()[document.getElementById("recSimulado").value];
+  if (!item) {
+    mostrarMsg("recursoMsg", "Este simulado não está mais aberto para recursos.", "erro");
+    return;
+  }
+  const r = await api("recurso", {
+    email: sessao.email,
+    hash: sessao.hash,
+    pacote: item.pacote.chave,
+    simulado: item.sim.titulo,
+    questao: document.getElementById("recQuestao").value,
+    texto: document.getElementById("recTexto").value.trim()
+  });
+  if (!r.ok) {
+    mostrarMsg("recursoMsg", r.erro, "erro");
+    return;
+  }
+  document.getElementById("recTexto").value = "";
+  mostrarMsg("recursoMsg", "Recurso enviado com sucesso.", "ok");
+  await atualizarSessao();
+  renderRecursos();
+  renderHistorico();
+});
+
+/* =========================================================
+   MODERAÇÃO
+   ========================================================= */
+async function carregarModerador() {
+  const r = await api("moderador", { email: sessao.email, hash: sessao.hash });
+  if (!r.ok) { mostrarMsg("modMsg", r.erro, "erro"); return; }
+  sessao.recursosAbertos = r.recursosAbertos;
+  atualizarBotaoTrava();
+  renderRecursosMod(r.recursos);
+  renderAlunosMod(r.alunos);
+}
+
+function atualizarBotaoTrava() {
+  const aberto = sessao.recursosAbertos;
+  document.getElementById("modStatus").textContent =
+    "Situação atual: recursos " + (aberto ? "ABERTOS para os alunos." : "TRANCADOS para todos.");
+  const btn = document.getElementById("btnTrancar");
+  btn.textContent = aberto ? "Trancar recursos para todos" : "Liberar recursos para todos";
+  btn.className = aberto ? "danger" : "";
+}
+
+async function alternarTrava() {
+  const r = await api("trancar", {
+    email: sessao.email,
+    hash: sessao.hash,
+    valor: !sessao.recursosAbertos
+  });
+  if (!r.ok) { mostrarMsg("modMsg", r.erro, "erro"); return; }
+  sessao.recursosAbertos = r.recursosAbertos;
+  atualizarBotaoTrava();
+  mostrarMsg("modMsg", r.recursosAbertos ? "Recursos liberados." : "Recursos trancados.", "ok");
+}
+
+function renderRecursosMod(lista) {
+  const box = document.getElementById("listaRecursosMod");
+  box.innerHTML = "";
+  if (!lista.length) {
+    box.appendChild(el("p", "Nenhum recurso recebido.", "muted"));
+    return;
+  }
+  lista.forEach(r => {
+    const div = el("div", undefined, "linha");
+    div.appendChild(el("strong", r.aluno + " – " + r.pacote + " – " + r.simulado + " – Questão " + r.questao));
+    div.appendChild(el("div", r.email + " · " + (r.data ? fmtData(r.data) : ""), "muted"));
+    div.appendChild(el("div", r.texto, "texto-recurso"));
+    box.appendChild(div);
+  });
+}
+
+function renderAlunosMod(lista) {
+  const box = document.getElementById("listaAlunos");
+  box.innerHTML = "";
+  lista.forEach(a => {
+    const linha = el("div", undefined, "linha");
+    linha.appendChild(el("strong", a.nome || a.email));
+    const info = a.papel === "moderador" ? "Moderador" : ("Pacotes: " + (a.pacotes || "—"));
+    linha.appendChild(el("div", a.email + " · " + info + (a.ativo ? "" : " · INATIVO"), "muted"));
+    box.appendChild(linha);
+  });
+}
+
+document.getElementById("formAluno").addEventListener("submit", async e => {
+  e.preventDefault();
+  const senha = document.getElementById("novaSenha").value;
+  const senhaHash = await gerarHash(senha);
+  const r = await api("criarAluno", {
+    email: sessao.email,
+    hash: sessao.hash,
+    aluno: {
+      email: document.getElementById("novoEmail").value.trim().toLowerCase(),
+      nome: document.getElementById("novoNome").value.trim(),
+      pacotes: document.getElementById("novoPacotes").value.trim(),
+      senhaHash: senhaHash
+    }
+  });
+  if (!r.ok) { mostrarMsg("alunoMsg", r.erro, "erro"); return; }
+  mostrarMsg("alunoMsg", "Aluno cadastrado. Envie a senha inicial a ele por um canal seguro.", "ok");
+  e.target.reset();
+  await carregarModerador();
+});
+
+/* =========================================================
+   VISUALIZADOR DE PDF
+   ========================================================= */
+function abrirPdf(titulo, arquivo) {
+  document.getElementById("viewerTitulo").textContent = titulo;
+  document.getElementById("viewerFrame").src = arquivo;
+  document.getElementById("viewer").classList.remove("hidden");
+  document.getElementById("viewer").scrollIntoView({ behavior: "smooth" });
+}
+
+function fecharViewer() {
+  document.getElementById("viewerFrame").src = "about:blank";
+  document.getElementById("viewer").classList.add("hidden");
+}
+
+function baixarPdf(arquivo) {
+  const a = document.createElement("a");
+  a.href = arquivo;
+  a.download = arquivo.split("/").pop();
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+</script>
+</body>
+</html>
